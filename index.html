@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cek Kesehatan Mandiri</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f8;--nv:#14213d;--pr:#4338ca;--ink:#1b2236;--mut:#667089;--ln:#d9deec;--ok:#177a55;--wn:#a15c07;--rd:#b42318}
+*{box-sizing:border-box}body{margin:0;font:15px/1.55 'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside{background:var(--nv);color:#fff;padding:22px 16px;position:sticky;top:0;height:100vh}
+aside h1{font-size:18px;margin:0 0 24px;font-weight:800;letter-spacing:-.3px}
+nav a{display:block;color:#b9c3e0;text-decoration:none;padding:10px 12px;border-radius:8px;margin-bottom:4px}
+nav a.on{background:#fff;color:var(--nv);font-weight:700}
+main{padding:28px;max-width:860px;width:100%}
+h2{font-size:24px;letter-spacing:-.4px;margin:0 0 6px;font-weight:800}h3{margin:18px 0 8px;font-size:16px}
+p.s{color:var(--mut);margin:0 0 18px}
+.c{background:#fff;border:1px solid var(--ln);border-radius:10px;padding:18px;margin-bottom:14px}
+button,.btn{background:var(--pr);color:#fff;border:0;border-radius:8px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+button.sec,.btn.sec{background:#fff;color:var(--pr);border:1px solid var(--pr)}button.dg{background:#fff;color:var(--rd);border:1px solid var(--rd)}
+button:disabled{opacity:.45;cursor:not-allowed}:focus-visible{outline:3px solid #ffb703;outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+input,textarea{width:100%;padding:10px;border:1px solid var(--ln);border-radius:8px;font:inherit;background:#fff}
+input[type=radio],input[type=checkbox]{width:auto}
+.ql{font-weight:700;display:block;margin-bottom:6px}.rq{color:var(--rd)}.q{margin-bottom:20px}.q[hidden]{display:none}
+.opt{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--ln);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer}
+.sc{display:flex;gap:6px;flex-wrap:wrap}.sc .opt{flex:1;min-width:92px;justify-content:center;text-align:center}
+.em{color:var(--rd);font-size:13px;margin-top:4px;min-height:0}.q.bad input:not([type=radio]):not([type=checkbox]),.q.bad textarea{border-color:var(--rd)}
+.tag{font-size:11px;background:#e2e6ff;color:var(--pr);border-radius:4px;padding:1px 6px;margin-left:6px}
+.bd{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px;background:#e6e9f2;color:#444}
+.bd.b{background:#dfe6ff;color:#2b3aa8}.bd.w{background:#fdecc8;color:var(--wn)}.bd.r{background:#fde0dc;color:var(--rd)}.bd.o{background:#d6f3e6;color:var(--ok)}
+.bar{height:6px;background:var(--ln);border-radius:9px;overflow:hidden;margin:6px 0 18px}.bar i{display:block;height:100%;background:var(--pr)}
+.warn{background:#fff4d6;border:1px solid #f1d58a;border-radius:8px;padding:10px 14px;margin:12px 0;color:#5c4308}
+.err{background:#fde8e6;border:1px solid #f4b4ad;border-radius:8px;padding:10px 14px;color:var(--rd)}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:4px 14px;padding:7px 0;border-bottom:1px solid var(--ln)}.kv span:first-child{color:var(--mut)}
+.big{font-size:44px;font-weight:800;color:var(--pr);line-height:1}
+.tl{border-left:2px solid var(--ln);margin:0;padding-left:16px;list-style:none}.tl li{margin-bottom:12px}.tl small{color:var(--mut);display:block}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.chips button{padding:6px 12px;background:#fff;color:var(--ink);border:1px solid var(--ln)}.chips button.on{background:var(--nv);color:#fff}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 18px;border-radius:8px;display:none;z-index:9}
+footer{color:var(--mut);font-size:12px;margin-top:24px}
+@media(max-width:720px){body{grid-template-columns:1fr}aside{position:static;height:auto;padding:12px}aside h1{margin:0 0 8px}nav{display:flex;gap:4px}main{padding:16px}.kv{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){main>*{animation:f .25s}@keyframes f{from{opacity:0}}}
+</style></head><body>
+<aside><h1>Cek Kesehatan<br>Mandiri</h1><nav>
+<a href="#/" data-p="">Beranda</a><a href="#/riwayat" data-p="riwayat">Riwayat</a><a href="#/pengaturan" data-p="pengaturan">Pengaturan</a></nav></aside>
+<main id="main"></main><div id="toast"></div>
+<script>
+const API='https://telehealth.informatikaunimus.site/api',app=document.getElementById('main');
+let cfg=JSON.parse(localStorage.getItem('cfg')||'{}'),ctx=null,FC={},LIST=[],FIL='semua';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tgl=s=>s?new Date(s).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'-';
+const DIS='<footer>Hasil self-assessment bukan diagnosis. Laporan Anda akan ditinjau oleh tenaga kesehatan.</footer>';
+const show=h=>{app.innerHTML=h+DIS;scrollTo(0,0)};
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(t.k);t.k=setTimeout(()=>t.style.display='none',3200)}
+async function api(p,{method='GET',body}={}){let r,j;
+ try{r=await fetch(API+p,{method,headers:{Authorization:'Bearer '+cfg.token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})}catch(e){throw{status:0,message:'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.'}}
+ try{j=await r.json()}catch(e){throw{status:r.status,message:'Respons server tidak dapat dibaca.'}}
+ if(!j.success)throw{status:r.status,...j};return j}
+const msg=e=>e.status===401?'Token tidak valid. Periksa token di menu Pengaturan.':e.status===409?'Tidak bisa dilakukan: status laporan sudah berubah (misalnya sudah dikirim).':(e.message||'Terjadi kesalahan.');
+const BC={terkirim:'b',menunggu_peninjauan:'w',sedang_ditinjau:'b',perlu_klarifikasi:'r',klarifikasi_dijawab:'b',sudah_ditinjau:'o'};
+const badge=s=>s?`<span class="bd ${BC[s.kode]||''}">${esc(s.label)}</span>`:'';
+function isVisible(c,a){if(!c)return true;if(c.any)return c.any.some(x=>isVisible(x,a));if(c.all)return c.all.every(x=>isVisible(x,a));
+ const v=a[c.question],f=v!=null&&v!==''&&!(Array.isArray(v)&&!v.length);
+ if('equals'in c)return v===c.equals;if('in'in c)return c.in.includes(v);if('includes'in c)return Array.isArray(v)&&v.includes(c.includes);if('filled'in c)return f===c.filled;return true}
+const empty=v=>v==null||v===''||(Array.isArray(v)&&!v.length);
+const form=async id=>FC[id]??=(await api('/forms/'+id)).data;
+const opts=q=>(q.options||q.opsi||[]).map(o=>typeof o==='object'?{v:o.value??o.nilai??o.kode??o.id,l:o.label??o.teks??o.text,x:!!o.exclusive||(o.value??o.nilai)==='tidak_ada'}:{v:o,l:o,x:false});
+const lbl=q=>q.pertanyaan||q.label||q.text||q.question||q.id;
+const sTitle=s=>s.judul||s.title||s.nama||'';
+const arr=x=>Array.isArray(x)?x:x?[x]:[];
+const secs=()=>ctx.f.sections.filter(s=>isVisible(s.show_if,ctx.A));
+const allQ=()=>ctx.f.sections.flatMap(s=>s.questions);
+const vq=s=>s.questions.filter(q=>isVisible(q.show_if,ctx.A));
+function txt(q,v){if(empty(v))return'<i>Belum diisi</i>';const o=opts(q);
+ if(q.type==='multi_choice')return esc(v.map(x=>o.find(y=>y.v===x)?.l||x).join(', '));
+ if(q.type==='single_choice')return esc(o.find(y=>y.v===v)?.l||v);
+ if(q.type==='scale')return esc((o.find(y=>String(y.v)===String(v))?.l||'')+' ('+v+')');
+ return esc(v+(q.satuan?' '+q.satuan:''))}
+
+/* ---------- router ---------- */
+const R={};
+async function route(){const [,pg,a,b,c]=location.hash.slice(1).split('/');
+ document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('on',x.dataset.p===(pg||'')));
+ if(pg!=='pengaturan'&&(!cfg.token||!cfg.nim))return location.hash='#/pengaturan';
+ show('<p class="s">Memuat…</p>');
+ try{await(R[pg||'']||R[''])(a,b,c)}catch(e){show(`<div class="err">${esc(msg(e))}</div>`)}}
+addEventListener('hashchange',route);route();
+
+/* ---------- pengaturan ---------- */
+R.pengaturan=async()=>{show(`<h2>Pengaturan</h2><p class="s">Identitas ini dikirim di setiap pengisian dan tersimpan di browser Anda.</p>
+<div class="c"><div class="q"><label class="ql">NIM</label><input id="s-nim" value="${esc(cfg.nim)}"></div>
+<div class="q"><label class="ql">Nama</label><input id="s-nama" value="${esc(cfg.nama)}"></div>
+<div class="q"><label class="ql">Kelas</label><input id="s-kelas" value="${esc(cfg.kelas)}" placeholder="TI-5A"></div>
+<div class="q"><label class="ql">Token pasien</label><input id="s-token" type="password" value="${esc(cfg.token)}" placeholder="tlh_pasien_..."></div>
+<div id="s-err"></div><button onclick="saveCfg()">Simpan dan uji koneksi</button></div>`)};
+async function saveCfg(){const n={nim:s('nim').toUpperCase(),nama:s('nama'),kelas:s('kelas'),token:s('token')},er=[];
+ function s(k){return document.getElementById('s-'+k).value.trim()}
+ if(!/^[A-Z0-9]{5,20}$/.test(n.nim))er.push('NIM harus 5–20 huruf/angka.');if(n.nama.length<3||n.nama.length>100)er.push('Nama 3–100 karakter.');
+ if(!n.kelas||n.kelas.length>20)er.push('Kelas wajib diisi (maks. 20 karakter).');if(!n.token.startsWith('tlh_pasien_'))er.push('Token harus berawalan tlh_pasien_.');
+ const box=document.getElementById('s-err');if(er.length)return box.innerHTML=`<div class="err">${er.join('<br>')}</div>`;
+ const old=cfg;cfg=n;try{await api('/me?nim='+n.nim);localStorage.setItem('cfg',JSON.stringify(n));toast('Koneksi berhasil.');location.hash='#/'}catch(e){cfg=old;box.innerHTML=`<div class="err">${esc(msg(e))}</div>`}}
+
+/* ---------- beranda ---------- */
+R['']=async()=>{const [me,fm,ut]=await Promise.all([api('/me?nim='+cfg.nim),api('/forms'),api('/uts/'+cfg.nim).catch(()=>null)]);
+ const m=me.data,st=m.statistik||{},u=ut?.data?.bukti_fitur;
+ show(`<h2>Halo, ${esc(m.nama)}</h2><p class="s">No. RM ${esc(m.no_rm)} · ${esc(cfg.nama)} (${esc(cfg.nim)}), ${esc(cfg.kelas)}</p>
+ ${st.perlu_klarifikasi?`<div class="warn">Ada ${st.perlu_klarifikasi} laporan yang memerlukan jawaban klarifikasi. <a href="#/riwayat">Lihat riwayat</a></div>`:''}
+ <div class="c"><div class="row" style="margin:0;gap:28px">${[['Total',st.total],['Draf',st.draf],['Menunggu',st.menunggu],['Perlu klarifikasi',st.perlu_klarifikasi],['Sudah ditinjau',st.sudah_ditinjau]].map(x=>`<div><div class="big" style="font-size:30px">${x[1]??0}</div>${x[0]}</div>`).join('')}</div></div>
+ <h3>Pilih formulir</h3>${fm.data.map(f=>`<div class="c"><b>${esc(f.judul)}</b> <span class="tag">${esc(f.jenis_hasil||'')}</span><p class="s" style="margin:6px 0 0">Perkiraan ${esc(f.estimasi_menit)} menit</p>
+ <div class="row"><a class="btn" href="#/petunjuk/${esc(f.id)}">Mulai mengisi</a></div></div>`).join('')}
+ ${u?`<div class="c">Bukti fitur terdeteksi: <b>${u.tercapai}/${u.total}</b> · Penilaian: ${esc(ut.data.penilaian?.status?.label||'-')}</div>`:''}`)};
+
+/* ---------- petunjuk ---------- */
+R.petunjuk=async id=>{const f=await form(id),p=f.persetujuan,pt=typeof p==='string'?p:(p?.teks||p?.text||p?.pernyataan||'Saya menyetujui penggunaan data ini.');
+ show(`<h2>${esc(f.judul)}</h2><p class="s">${esc(f.tujuan||f.deskripsi||'')}</p>
+ <div class="c"><h3 style="margin-top:0">Sebelum mengisi</h3><ul>${arr(f.petunjuk).map(x=>`<li>${esc(typeof x==='string'?x:x.teks||x.text)}</li>`).join('')}</ul></div>
+ <div class="c"><label class="opt"><input type="checkbox" id="ok" onchange="document.getElementById('go').disabled=!this.checked">${esc(pt)}</label>
+ <div class="row"><button id="go" disabled onclick="mulai('${esc(id)}')">Mulai</button><a class="btn sec" href="#/">Batal</a></div></div>`)};
+async function mulai(id){try{const d=(await api('/assessments',{method:'POST',body:{form_id:id,persetujuan:true,mahasiswa:{nim:cfg.nim,nama:cfg.nama,kelas:cfg.kelas}}})).data;location.hash=`#/isi/${id}/${d.id}/0`}catch(e){toast(msg(e))}}
+
+/* ---------- pengisian ---------- */
+async function load(fid,aid){const f=await form(fid),d=(await api('/assessments/'+aid)).data;ctx={fid,aid,f,A:{...(d.answers||{})},i:0}}
+R.isi=async(fid,aid,i)=>{await load(fid,aid);ctx.i=Number(i)||0;step()};
+function qHtml(q){const id=q.id,v=ctx.A[id],t=q.type,req=q.required??q.wajib,o=opts(q);let x='';
+ const chk=y=>(Array.isArray(v)?v.includes(y):String(v)===String(y))?'checked':'';
+ if(t==='text')x=`<input data-q="${id}" ${q.max_length?`maxlength="${q.max_length}"`:''} value="${esc(v)}">`;
+ else if(t==='textarea')x=`<textarea rows="3" data-q="${id}" ${q.max_length?`maxlength="${q.max_length}"`:''}>${esc(v)}</textarea>`;
+ else if(t==='single_choice')x=o.map(y=>`<label class="opt"><input type="radio" name="${id}" data-q="${id}" value="${esc(y.v)}" ${chk(y.v)}>${esc(y.l)}</label>`).join('');
+ else if(t==='scale')x=`<div class="sc">${o.map(y=>`<label class="opt"><input type="radio" name="${id}" data-q="${id}" value="${esc(y.v)}" ${chk(y.v)}>${esc(y.l)}</label>`).join('')}</div>`;
+ else if(t==='multi_choice')x=o.map(y=>`<label class="opt"><input type="checkbox" data-q="${id}" value="${esc(y.v)}" ${chk(y.v)}>${esc(y.l)}</label>`).join('');
+ else if(t==='number')x=`<div style="display:flex;gap:8px;align-items:center"><input type="number" step="any" data-q="${id}" ${q.min!=null?`min="${q.min}"`:''} ${q.max!=null?`max="${q.max}"`:''} value="${esc(v)}" style="max-width:180px">${esc(q.satuan||'')}</div>`;
+ else if(t==='date')x=`<input type="date" data-q="${id}" max="${new Date().toISOString().slice(0,10)}" value="${esc(v)}" style="max-width:200px">`;
+ return`<div class="q" id="q-${id}" ${isVisible(q.show_if,ctx.A)?'':'hidden'}><label class="ql">${esc(lbl(q))}${req?'<span class="rq"> *</span>':''}${q.data_type==='pengukuran'?'<span class="tag">hasil ukur</span>':''}</label>${x}<div class="em" id="e-${id}"></div></div>`}
+function step(){const S=secs();if(ctx.i>=S.length)return location.hash=`#/periksa/${ctx.fid}/${ctx.aid}`;const s=S[ctx.i];
+ show(`<p class="s" style="margin:0">${esc(ctx.f.judul)} · Bagian ${ctx.i+1} dari ${S.length}</p><div class="bar"><i style="width:${(ctx.i+1)/S.length*100}%"></i></div>
+ <h2>${esc(sTitle(s))}</h2><p class="s">${esc(s.deskripsi||s.description||'')}</p><div class="c">${s.questions.map(qHtml).join('')}</div>
+ <div class="row"><button class="sec" onclick="prev()" ${ctx.i?'':'disabled'}>Kembali</button><button class="sec" onclick="simpan(false)">Simpan draf</button><button onclick="simpan(true)">Lanjut</button></div>`)}
+const prev=()=>{ctx.i--;step()};
+function setErr(id,m){const e=document.getElementById('e-'+id);if(e){e.textContent=m;e.parentElement.classList.toggle('bad',!!m)}}
+function onIn(e){const el=e.target,id=el.dataset.q;if(!id||!ctx)return;const q=allQ().find(z=>z.id===id);if(!q)return;let v;
+ if(q.type==='multi_choice'){const bx=[...app.querySelectorAll(`[data-q="${id}"]`)],o=opts(q),me=o.find(z=>String(z.v)===el.value);
+  if(el.checked)bx.forEach(b=>{const ob=o.find(z=>String(z.v)===b.value);if(b!==el&&(me?.x||ob?.x))b.checked=false});v=bx.filter(b=>b.checked).map(b=>b.value)}
+ else if(el.type==='radio')v=q.type==='scale'?Number(el.value):el.value;
+ else if(q.type==='number')v=el.value===''?null:Number(el.value);else v=el.value.trim()===''?null:el.value;
+ ctx.A[id]=v;setErr(id,'');
+ secs()[ctx.i]?.questions.forEach(z=>{const d=document.getElementById('q-'+z.id);if(d)d.hidden=!isVisible(z.show_if,ctx.A)})}
+app.addEventListener('input',onIn);app.addEventListener('change',onIn);
+async function simpan(next){const s=secs()[ctx.i],ans={};let bad=0;
+ for(const q of s.questions){const vis=isVisible(q.show_if,ctx.A),v=ctx.A[q.id];
+  if(vis&&next&&(q.required??q.wajib)&&empty(v)){setErr(q.id,q.pesan_wajib||'Pertanyaan ini wajib diisi.');bad++}
+  ans[q.id]=vis&&!empty(v)?v:null}
+ if(bad)return toast('Masih ada kolom wajib yang belum diisi.');
+ try{await api('/assessments/'+ctx.aid,{method:'PATCH',body:{answers:ans}})}catch(e){if(e.errors)Object.entries(e.errors).forEach(([k,m])=>setErr(k,m));return toast(msg(e))}
+ if(next){ctx.i++;step()}else toast('Draf tersimpan.')}
+
+/* ---------- periksa & kirim ---------- */
+const clean=()=>{const o={};secs().forEach(s=>vq(s).forEach(q=>{if(!empty(ctx.A[q.id]))o[q.id]=ctx.A[q.id]}));return o};
+R.periksa=async(fid,aid)=>{if(!ctx||ctx.aid!==aid)await load(fid,aid);
+ const v=(await api(`/forms/${fid}/validate`,{method:'POST',body:{nim:cfg.nim,answers:clean()}})).data,er=v.errors||{},k=v.kelengkapan||{};
+ const idx=id=>secs().findIndex(s=>s.questions.some(q=>q.id===id));
+ show(`<h2>Periksa jawaban</h2><p class="s">Pastikan semua jawaban benar. Setelah dikirim, jawaban tidak dapat diubah.</p>
+ <div class="c">Kelengkapan: <b>${k.persen??0}%</b><div class="bar"><i style="width:${k.persen||0}%"></i></div>
+ ${Object.keys(er).length?`<div class="warn"><b>Perlu diperbaiki:</b><ul>${Object.entries(er).map(([id,m])=>`<li>${esc(m)} <a href="#/isi/${fid}/${aid}/${Math.max(idx(id),0)}">Perbaiki</a></li>`).join('')}</ul></div>`:''}</div>
+ <div class="c">${secs().map(s=>`<h3 style="margin-top:6px">${esc(sTitle(s))}</h3>`+vq(s).map(q=>`<div class="kv"><span>${esc(lbl(q))}</span><span>${txt(q,ctx.A[q.id])}</span></div>`).join('')).join('')}</div>
+ <div class="row"><a class="btn sec" href="#/isi/${fid}/${aid}/0">Ubah jawaban</a><button id="kr" onclick="kirim()" ${v.valid?'':'disabled'}>Kirim jawaban</button></div>`)};
+async function kirim(){document.getElementById('kr').disabled=true;try{await api(`/assessments/${ctx.aid}/submit`,{method:'POST'});location.hash='#/konfirmasi/'+ctx.aid}
+ catch(e){if(e.errors)Object.values(e.errors).forEach(m=>toast(m));else toast(msg(e));document.getElementById('kr').disabled=false}}
+R.konfirmasi=async id=>{const s=(await api(`/assessments/${id}/status`)).data;
+ show(`<div class="c" style="text-align:center;padding:36px"><h2>Formulir Anda telah diterima.</h2><p>Nomor laporan <b>${esc(id)}</b></p><p>${badge(s.status_peninjauan)}</p><p class="s">${esc(s.pesan||'')}</p>
+ <div class="row" style="justify-content:center"><a class="btn" href="#/status/${id}">Pantau status</a><a class="btn sec" href="#/hasil/${id}">Lihat hasil</a><a class="btn sec" href="#/">Selesai</a></div></div>`)};
+
+/* ---------- riwayat ---------- */
+const FILT={semua:()=>1,draf:x=>x.status_pengiriman.kode==='draft',diproses:x=>['menunggu_peninjauan','sedang_ditinjau','klarifikasi_dijawab'].includes(x.status_peninjauan.kode),perlu_klarifikasi:x=>x.status_peninjauan.kode==='perlu_klarifikasi',sudah_ditinjau:x=>x.status_peninjauan.kode==='sudah_ditinjau'};
+R.riwayat=async()=>{LIST=(await api('/assessments?nim='+cfg.nim)).data;drawRiwayat()};
+function drawRiwayat(){const l=LIST.filter(FILT[FIL]);
+ show(`<h2>Riwayat</h2><div class="chips">${Object.keys(FILT).map(k=>`<button class="${k===FIL?'on':''}" onclick="FIL='${k}';drawRiwayat()">${k.replace('_',' ')}</button>`).join('')}</div>
+ ${l.length?l.map(x=>{const dr=x.status_pengiriman.kode==='draft';return`<div class="c"><b>${esc(x.judul||x.form?.judul)}</b> ${badge(x.status_pengiriman)} ${badge(x.status_peninjauan)}
+ <p class="s" style="margin:4px 0 0">${esc(x.form?.judul)} · ${esc(x.id)} · ${tgl(x.dikirim_pada||x.dibuat_pada)}${x.ada_tindak_lanjut?' · ada tindak lanjut':''}</p>
+ <div class="row">${dr?`<a class="btn" href="#/isi/${x.form.id}/${x.id}/0">Lanjutkan pengisian</a><button class="dg" onclick="hapus('${x.id}')">Hapus draf</button>`:
+ `<a class="btn sec" href="#/hasil/${x.id}">Lihat hasil</a><a class="btn" href="#/status/${x.id}">${x.klarifikasi_menunggu?'Jawab klarifikasi':'Pantau status'}</a>`}</div></div>`}).join(''):'<div class="c">Belum ada laporan di kategori ini. <a href="#/">Mulai dari Beranda.</a></div>'}`)}
+async function hapus(id){if(!confirm('Hapus draf '+id+'?'))return;try{await api('/assessments/'+id,{method:'DELETE'});toast('Draf dihapus.');R.riwayat()}catch(e){toast(msg(e))}}
+
+/* ---------- hasil ---------- */
+R.hasil=async id=>{const d=(await api(`/assessments/${id}/hasil`)).data,h=d.hasil||d,p=d.perubahan||h.perubahan,k=h.kelengkapan||{},sk=h.skor;
+ show(`<h2>${esc(h.judul||'Hasil assessment')}</h2><p class="s">Laporan ${esc(id)}</p>
+ <div class="c">Kelengkapan: <b>${esc(k.label||'')}</b> (${k.persen??0}%)<div class="bar"><i style="width:${k.persen||0}%"></i></div></div>
+ ${sk?`<div class="c"><div class="big">${sk.total}<small style="font-size:18px;color:var(--mut)"> / ${sk.maks}</small></div><p><span class="bd w">${esc(sk.kategori?.label)}</span> rentang ${esc(sk.kategori?.rentang)}</p><p>${esc(sk.keterangan)}</p></div>`:''}
+ ${p?.pembanding_id?`<div class="c"><h3 style="margin-top:0">Perubahan dari ${esc(p.pembanding_id)}</h3>${p.skor?`<p>Skor ${p.skor.sebelumnya} → <b>${p.skor.sekarang}</b> (${p.skor.selisih>0?'+':''}${p.skor.selisih})</p>`:''}
+ ${(p.perubahan||[]).map(c=>`<div class="kv"><span>${esc(c.label)}</span><span>${esc(c.sebelumnya)} → <b>${esc(c.sekarang)}</b></span></div>`).join('')}</div>`:''}
+ <div class="c"><h3 style="margin-top:0">Jawaban Anda</h3>${(h.ringkasan||[]).map(r=>`<div class="kv"><span>${esc(r.label)}${r.data_type==='pengukuran'?'<span class="tag">hasil ukur</span>':''}</span><span>${r.terisi?esc(r.jawaban_teks)+(r.satuan?' '+esc(r.satuan):''):'<i>Belum diisi</i>'}</span></div>`).join('')}</div>
+ <div class="warn"><b>Keterbatasan hasil.</b> ${esc(h.keterbatasan||'Hasil self-assessment bukan diagnosis.')}</div>
+ <div class="c"><b>Langkah berikutnya.</b> ${esc(h.langkah_berikutnya||'')}</div><a class="btn" href="#/status/${id}">Pantau status laporan</a>`)};
+
+/* ---------- status, klarifikasi, tindak lanjut ---------- */
+R.status=async id=>{const s=(await api(`/assessments/${id}/status`)).data,kl=s.klarifikasi_menunggu||[],t=s.tindak_lanjut;
+ show(`<h2>Status laporan ${esc(id)}</h2>
+ <div class="c"><div class="kv"><span>Pengiriman</span><span>${badge(s.status_pengiriman)}</span></div><div class="kv"><span>Peninjauan</span><span>${badge(s.status_peninjauan)}</span></div><p>${esc(s.pesan||'')}</p></div>
+ ${kl.length?`<div class="c"><h3 style="margin-top:0">Pertanyaan dari petugas</h3>${kl.map(k=>`<div class="q"><label class="ql">${esc(k.pertanyaan)}</label><textarea rows="3" id="kl-${k.id}"></textarea><div class="em" id="ke-${k.id}"></div><button onclick="balas('${id}','${k.id}')">Kirim jawaban</button></div>`).join('')}</div>`:''}
+ ${t?`<div class="c"><h3 style="margin-top:0">Tindak lanjut <span class="bd o">${esc(t.jenis?.label)}</span></h3><p>${esc(t.arahan)}</p>${t.jadwal_konsultasi?`<div class="warn">Jadwal konsultasi: <b>${tgl(t.jadwal_konsultasi)}</b></div>`:''}<p class="s">Dicatat oleh ${esc(t.dicatat_oleh?.nama)} · ${tgl(t.dicatat_pada)}</p></div>`:''}
+ <div class="c"><h3 style="margin-top:0">Riwayat status</h3><ul class="tl">${(s.timeline||[]).slice().reverse().map(e=>`<li><b>${esc(e.keterangan||e.event)}</b><small>${tgl(e.waktu)}</small></li>`).join('')}</ul></div>
+ <div class="row"><a class="btn sec" href="#/hasil/${id}">Lihat ringkasan</a><button onclick="route()">Muat ulang status</button></div>`)};
+async function balas(id,cid){const v=document.getElementById('kl-'+cid).value.trim();if(!v)return document.getElementById('ke-'+cid).textContent='Jawaban tidak boleh kosong.';
+ try{await api(`/assessments/${id}/clarifications/${cid}/reply`,{method:'POST',body:{jawaban:v}});toast('Jawaban terkirim.');route()}catch(e){document.getElementById('ke-'+cid).textContent=e.errors?Object.values(e.errors).join(' '):msg(e)}}
+</script></body></html>
